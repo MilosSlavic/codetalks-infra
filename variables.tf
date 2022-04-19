@@ -6,8 +6,8 @@ variable "AZ_Location" {
 variable "tags" {
   type = map(string)
   default = {
-    Source = "Terraform"
+    Source      = "Terraform"
     Environment = "CodeTalks"
-    Author = "Milos Slavic"
+    Author      = "Milos Slavic"
   }
 }

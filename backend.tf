@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">=1.1.8"
+
   backend "azurerm" {
     resource_group_name  = "codetalks-terraform-rg"
     storage_account_name = "codetalksterraformsa"

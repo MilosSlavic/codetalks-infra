@@ -44,9 +44,28 @@ resource "azurerm_virtual_network" "codetalks-vnet" {
 }
 
 resource "azurerm_subnet" "k8s-subnet" {
-  name                        = "k8s-subnet"
-  resource_group_name         = azurerm_resource_group.codetalks-rg.name
-  virtual_network_name        = azurerm_virtual_network.codetalks-vnet.name
-  address_prefixes            = ["10.0.0.0/16"]
-  service_endpoints           = ["Microsoft.ContainerRegistry", "Microsoft.KeyVault", "Microsoft.Storage"]
+  name                 = "k8s-subnet"
+  resource_group_name  = azurerm_resource_group.codetalks-rg.name
+  virtual_network_name = azurerm_virtual_network.codetalks-vnet.name
+  address_prefixes     = ["10.0.0.0/16"]
+  service_endpoints    = ["Microsoft.ContainerRegistry", "Microsoft.KeyVault", "Microsoft.Storage"]
+}
+
+resource "azurerm_container_registry" "acr" {
+  name                          = "codetalksacr"
+  resource_group_name           = azurerm_resource_group.codetalks-rg.name
+  location                      = azurerm_resource_group.codetalks-rg.location
+  public_network_access_enabled = false
+  sku                           = "Premium"
+  zone_redundancy_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+    virtual_network {
+      action    = "Allow"
+      subnet_id = azurerm_subnet.k8s-subnet.id
+    }
+  }
+
+  tags = var.tags
 }

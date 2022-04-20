@@ -97,31 +97,3 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   tags = var.tags
 }
-
-# resource "azuredevops_project" "devopsproject" {
-#   name               = "CodeTalks"
-#   visibility         = "private"
-#   version_control    = "Git"
-#   work_item_template = "Agile"
-#   description        = "Managed by Terraform"
-#   features = {
-#     "testplans" = "disabled"
-#     "artifacts" = "disabled"
-#   }
-# }
-
-# resource "azuredevops_serviceendpoint_azurecr" "seazurecr" {
-#   project_id              = azuredevops_project.devopsproject.id
-#   service_endpoint_name   = "ACR"
-#   resource_group          = azurerm_resource_group.codetalks-rg.name
-#   azurecr_name            = azurerm_container_registry.acr.name
-#   azurecr_spn_tenantid    = data.azurerm_client_config.current.tenant_id
-#   azurecr_subscription_id = data.azurerm_client_config.current.subscription_id
-#   azurecr_subscription_name = "Subscription name"
-# }
-
-# resource "azuredevops_serviceendpoint_github" "devopsgithub" {
-#   project_id            = azuredevops_project.devopsproject.id
-#   service_endpoint_name = "Codetalks Github repo"
-#   description           = "Managed by Terraform"
-# }

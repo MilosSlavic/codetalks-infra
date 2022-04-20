@@ -69,3 +69,23 @@ resource "azurerm_container_registry" "acr" {
 
   tags = var.tags
 }
+
+resource "azurerm_kubernetes_cluster" "aks" {
+  name = "codetalks-aks"
+  location = azurerm_resource_group.codetalks-rg.location
+  resource_group_name = azurerm_resource_group.codetalks-rg.name
+  dns_prefix = "codetalksaks"
+  kubernetes_version = "1.22.6"
+
+  default_node_pool {
+    name = "default"
+    node_count = 3
+    vm_size = "Standard_D2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = var.tags
+}

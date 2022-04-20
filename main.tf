@@ -32,6 +32,14 @@ resource "azurerm_key_vault" "codetalks-keyvault" {
     storage_permissions     = ["Get"]
     certificate_permissions = ["Get"]
   }
+  access_policy {
+    tenant_id               = data.azurerm_client_config.current.tenant_id
+    object_id               = var.user_object_id
+    key_permissions         = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "UnwrapKey", "Sign", "WrapKey", "Decrypt", "Encrypt", "Purge", "Verify"]
+    secret_permissions      = ["Get", "List", "Set", "Delete", "Recover", "Backup", "Restore", "Purge"]
+    storage_permissions     = ["Get"]
+    certificate_permissions = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "ManageContacts", "ManageIssuers", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers", "Purge"]
+  }
   tags = var.tags
 }
 
@@ -71,16 +79,16 @@ resource "azurerm_container_registry" "acr" {
 }
 
 resource "azurerm_kubernetes_cluster" "aks" {
-  name = "codetalks-aks"
-  location = azurerm_resource_group.codetalks-rg.location
+  name                = "codetalks-aks"
+  location            = azurerm_resource_group.codetalks-rg.location
   resource_group_name = azurerm_resource_group.codetalks-rg.name
-  dns_prefix = "codetalksaks"
-  kubernetes_version = "1.22.6"
+  dns_prefix          = "codetalksaks"
+  kubernetes_version  = "1.22.6"
 
   default_node_pool {
-    name = "default"
+    name       = "default"
     node_count = 3
-    vm_size = "Standard_D2_v2"
+    vm_size    = "Standard_D2_v2"
   }
 
   identity {
@@ -89,3 +97,31 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   tags = var.tags
 }
+
+# resource "azuredevops_project" "devopsproject" {
+#   name               = "CodeTalks"
+#   visibility         = "private"
+#   version_control    = "Git"
+#   work_item_template = "Agile"
+#   description        = "Managed by Terraform"
+#   features = {
+#     "testplans" = "disabled"
+#     "artifacts" = "disabled"
+#   }
+# }
+
+# resource "azuredevops_serviceendpoint_azurecr" "seazurecr" {
+#   project_id              = azuredevops_project.devopsproject.id
+#   service_endpoint_name   = "ACR"
+#   resource_group          = azurerm_resource_group.codetalks-rg.name
+#   azurecr_name            = azurerm_container_registry.acr.name
+#   azurecr_spn_tenantid    = data.azurerm_client_config.current.tenant_id
+#   azurecr_subscription_id = data.azurerm_client_config.current.subscription_id
+#   azurecr_subscription_name = "Subscription name"
+# }
+
+# resource "azuredevops_serviceendpoint_github" "devopsgithub" {
+#   project_id            = azuredevops_project.devopsproject.id
+#   service_endpoint_name = "Codetalks Github repo"
+#   description           = "Managed by Terraform"
+# }

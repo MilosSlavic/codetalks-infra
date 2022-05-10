@@ -83,12 +83,18 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   dns_prefix          = "codetalksaks"
-  kubernetes_version  = "1.22.6"
+  kubernetes_version  = "1.23.5"
 
   default_node_pool {
-    name       = "default"
-    node_count = 3
-    vm_size    = "Standard_D2_v2"
+    name                 = "default"
+    node_count           = 1
+    vm_size              = "Standard_D2_v2"
+    orchestrator_version = "1.23.5"
+  }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled = false
+
   }
 
   identity {
@@ -96,4 +102,15 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   tags = var.tags
+}
+
+
+
+resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
+  name                  = "ctpool01"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
+  node_count            = 2
+  vm_size               = "Standard_DS2_v2"
+  orchestrator_version  = "1.23.5"
+  tags                  = var.tags
 }

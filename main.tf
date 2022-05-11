@@ -6,6 +6,8 @@ provider "azurerm" {
   }
 }
 
+provider "github" {}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "rg" {
@@ -63,10 +65,10 @@ resource "azurerm_container_registry" "acr" {
   name                          = "codetalksacr"
   resource_group_name           = azurerm_resource_group.rg.name
   location                      = azurerm_resource_group.rg.location
-  public_network_access_enabled = false
+  public_network_access_enabled = true
   sku                           = "Premium"
   zone_redundancy_enabled       = false
-
+  admin_enabled                 = true
   # network_rule_set {
   #   default_action = "Deny"
   #   virtual_network {
@@ -84,7 +86,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   resource_group_name = azurerm_resource_group.rg.name
   dns_prefix          = "codetalksaks"
   kubernetes_version  = "1.23.5"
-
+  
   default_node_pool {
     name                 = "default"
     node_count           = 1
@@ -94,7 +96,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   key_vault_secrets_provider {
     secret_rotation_enabled = false
-
   }
 
   identity {
@@ -104,8 +105,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = var.tags
 }
 
-
-
 resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
   name                  = "ctpool01"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
@@ -113,4 +112,16 @@ resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
   vm_size               = "Standard_DS2_v2"
   orchestrator_version  = "1.23.5"
   tags                  = var.tags
+}
+
+resource "github_actions_secret" "acrusername" {
+  secret_name     = "ACR_USERNAME"
+  plaintext_value = azurerm_container_registry.acr.admin_username
+  repository      = "demo-hr"
+}
+
+resource "github_actions_secret" "acrpass" {
+  secret_name     = "ACR_PASSWORD"
+  plaintext_value = azurerm_container_registry.acr.admin_password
+  repository      = "demo-hr"
 }

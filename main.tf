@@ -10,118 +10,41 @@ provider "github" {}
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "rg" {
-  name     = "codetalks-rg"
+module "azure" {
+  source = "./azure"
+
+  resource_group_name = "codetalks-rg"
   location = var.AZ_Location
-  tags     = var.tags
-}
 
-resource "azurerm_key_vault" "keyvault" {
-  name                            = "codetalk-keyvault"
-  location                        = azurerm_resource_group.rg.location
-  resource_group_name             = azurerm_resource_group.rg.name
-  enabled_for_disk_encryption     = false
-  enabled_for_template_deployment = true
-  tenant_id                       = data.azurerm_client_config.current.tenant_id
-  soft_delete_retention_days      = 7
-  purge_protection_enabled        = false
-  sku_name                        = "standard"
-  access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = data.azurerm_client_config.current.object_id
-    key_permissions         = ["Get"]
-    secret_permissions      = ["Get"]
-    storage_permissions     = ["Get"]
-    certificate_permissions = ["Get"]
-  }
-  access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = var.user_object_id
-    key_permissions         = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "UnwrapKey", "Sign", "WrapKey", "Decrypt", "Encrypt", "Purge", "Verify"]
-    secret_permissions      = ["Get", "List", "Set", "Delete", "Recover", "Backup", "Restore", "Purge"]
-    storage_permissions     = ["Get"]
-    certificate_permissions = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "ManageContacts", "ManageIssuers", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers", "Purge"]
-  }
-  tags = var.tags
-}
+  keyvault_name = "codetalks-keyvault"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  keyvault_sku = "standard"
+  sp_id = data.azurerm_client_config.current.object_id
+  user_id = var.user_object_id
 
-# resource "azurerm_virtual_network" "vnet" {
-#   name                = "codetalks-vnet"
-#   location            = azurerm_resource_group.codetalks-rg.location
-#   resource_group_name = azurerm_resource_group.codetalks-rg.name
-#   address_space       = ["10.0.0.0/8"]
-#   tags                = var.tags
-# }
+  acr_name = "codetalksacr"
+  acr_sku = "Premium"
 
-# resource "azurerm_subnet" "subnet" {
-#   name                 = "k8s-subnet"
-#   resource_group_name  = azurerm_resource_group.codetalks-rg.name
-#   virtual_network_name = azurerm_virtual_network.codetalks-vnet.name
-#   address_prefixes     = ["10.0.0.0/16"]
-#   service_endpoints    = ["Microsoft.ContainerRegistry", "Microsoft.KeyVault", "Microsoft.Storage"]
-# }
-
-resource "azurerm_container_registry" "acr" {
-  name                          = "codetalksacr"
-  resource_group_name           = azurerm_resource_group.rg.name
-  location                      = azurerm_resource_group.rg.location
-  public_network_access_enabled = true
-  sku                           = "Premium"
-  zone_redundancy_enabled       = false
-  admin_enabled                 = true
-  # network_rule_set {
-  #   default_action = "Deny"
-  #   virtual_network {
-  #     action    = "Allow"
-  #     subnet_id = azurerm_subnet.k8s-subnet.id
-  #   }
-  # }
+  aks_name = "codetalks-aks"
+  aks_dns_prefix = "codetalksaks"
+  k8s_version = "1.23.5"
+  aks_default_node_count = 1
+  aks_default_vm_size = "Standard_D2_v2"
+  aks_worker_pool_name = "ctpool01"
+  aks_worker_node_count = 2
+  aks_worker_vm_size = "Standard_DS2_v2"
 
   tags = var.tags
 }
 
-resource "azurerm_kubernetes_cluster" "aks" {
-  name                = "codetalks-aks"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  dns_prefix          = "codetalksaks"
-  kubernetes_version  = "1.23.5"
-  
-  default_node_pool {
-    name                 = "default"
-    node_count           = 1
-    vm_size              = "Standard_D2_v2"
-    orchestrator_version = "1.23.5"
-  }
+module "github" {
+  source = "./github"
 
-  key_vault_secrets_provider {
-    secret_rotation_enabled = false
-  }
+  acr_username = module.azure.acr_admin_username
+  acr_password = module.azure.acr_admin_password
+  repository = "demo-hr"
 
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = var.tags
-}
-
-resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
-  name                  = "ctpool01"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
-  node_count            = 2
-  vm_size               = "Standard_DS2_v2"
-  orchestrator_version  = "1.23.5"
-  tags                  = var.tags
-}
-
-resource "github_actions_secret" "acrusername" {
-  secret_name     = "ACR_USERNAME"
-  plaintext_value = azurerm_container_registry.acr.admin_username
-  repository      = "demo-hr"
-}
-
-resource "github_actions_secret" "acrpass" {
-  secret_name     = "ACR_PASSWORD"
-  plaintext_value = azurerm_container_registry.acr.admin_password
-  repository      = "demo-hr"
+  depends_on = [
+    module.azure
+  ]
 }

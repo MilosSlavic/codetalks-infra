@@ -37,11 +37,17 @@ module "azure" {
   tags = var.tags
 }
 
+data "azurerm_storage_account" "proto_storage_account" {
+  name = "codetalksprotostorage"
+  resource_group_name = "codetalks-proto"
+}
+
 module "github" {
   source = "./github"
 
   acr_username = module.azure.acr_admin_username
   acr_password = module.azure.acr_admin_password
+  proto_storage_account = data.azurerm_storage_account.proto_storage_account.primary_connection_string
   repository = "demo-hr"
 
   depends_on = [

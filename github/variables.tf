@@ -11,3 +11,8 @@ variable "acr_password" {
 variable "repository" {
   type = string
 }
+
+variable "proto_storage_account" {
+  type = string
+  sensitive =true
+}

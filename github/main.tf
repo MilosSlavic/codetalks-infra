@@ -18,3 +18,9 @@ resource "github_actions_secret" "acrpass" {
   plaintext_value = var.acr_password
   repository      = var.repository
 }
+
+resource "github_actions_secret" "storage_account" {
+  secret_name     = "STORAGE_ACCOUNT_CONNECTION"
+  plaintext_value = var.proto_storage_account
+  repository      = var.repository
+}

@@ -11,3 +11,5 @@ $env:ARM_SUBSCRIPTION_ID = $SubscriptionId
 $env:ARM_TENANT_ID = $principal.tenant
 $env:TF_VAR_user_object_id=$user.objectId
 $env:TF_VAR_AZ_Location="westeurope"
+
+$env:AZURE_CREDENTIALS = "{""clientId"" :""${env:ARM_CLIENT_ID}"", ""clientSecret"": ""${env:ARM_CLIENT_SECRET}"", ""subscriptionId"": ""${env:ARM_SUBSCRIPTION_ID}"", ""tenantId"": ""${env:ARM_TENANT_ID}"", ""resourceManagerEndpointUrl"": ""https://management.azure.com/""}"

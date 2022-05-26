@@ -1,10 +1,10 @@
 variable "acr_username" {
-  type = string
+  type      = string
   sensitive = true
 }
 
 variable "acr_password" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -13,6 +13,6 @@ variable "repository" {
 }
 
 variable "proto_storage_account" {
-  type = string
-  sensitive =true
+  type      = string
+  sensitive = true
 }

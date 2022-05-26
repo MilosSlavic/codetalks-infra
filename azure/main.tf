@@ -12,6 +12,9 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy = true
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -72,7 +75,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   resource_group_name = azurerm_resource_group.rg.name
   dns_prefix          = var.aks_dns_prefix
   kubernetes_version  = var.k8s_version
-  
+
   default_node_pool {
     name                 = "default"
     node_count           = var.aks_default_node_count
@@ -89,6 +92,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   tags = var.tags
+
+  depends_on = [
+    azurerm_resource_group.rg
+  ]
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
@@ -98,4 +105,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "aks_nodepool" {
   vm_size               = var.aks_worker_vm_size
   orchestrator_version  = var.k8s_version
   tags                  = var.tags
+
+  depends_on = [
+    azurerm_kubernetes_cluster.aks
+  ]
 }
